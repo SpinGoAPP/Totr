@@ -1,1 +1,40 @@
+body {
+    margin: 0;
+    background: url('assets/bg.png') no-repeat center center fixed;
+    background-size: cover;
+    height: 100vh;
+    display: flex; justify-content: center; align-items: center;
+    font-family: Arial, sans-serif;
+}
 
+.main-container {
+    background: rgba(0, 0, 0, 0.9);
+    padding: 30px; border-radius: 20px; border: 2px solid #00ffcc;
+    width: 360px; text-align: center;
+}
+
+.app-logo { width: 140px; margin-bottom: 10px; }
+.welcome-txt { color: #00ffcc; font-size: 1.4rem; margin-bottom: 20px; font-weight: bold; }
+
+.custom-btn { position: relative; cursor: pointer; margin: 15px auto; width: 100%; }
+.custom-btn img { width: 100%; display: block; }
+.custom-btn span {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    color: white; font-weight: bold; font-size: 16px;
+}
+
+.danger-box {
+    margin-top: 25px; background: red; color: white; border: 2px solid white;
+    padding: 10px; font-size: 10px; font-weight: bold; border-radius: 5px;
+}
+
+.data-box { background: #111; border: 1px solid #00ffcc; padding: 15px; margin: 10px 0; font-size: 11px; color: #00ffcc; text-align: left; overflow-wrap: break-word; }
+.hidden { display: none; }
+.click-hint { font-size: 10px; color: #888; margin-top: -5px; }
+
+input {
+    width: 90%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #333;
+    color: #00ffcc; border-radius: 5px; text-align: center; font-size: 14px;
+}
+
+#error-msg { color: #ff0000; font-size: 12px; font-weight: bold; }
