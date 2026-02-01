@@ -8,16 +8,21 @@
 </head>
 <body>
     <div class="main-container">
-        <img src="assets/logo.png" class="app-logo">
+        <div id="toast" class="toast hidden"></div>
 
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="spinner"></div>
+        </div>
+
+        <img src="assets/logo.png" class="app-logo">
         <h1 class="welcome-txt">Welcome to Tortuga Pitch!</h1>
         
         <div id="auth-choice">
-            <div class="custom-btn" onclick="generateAccount()">
+            <div class="custom-btn" onclick="triggerAction('generate')">
                 <img src="assets/btn-green.png">
                 <span>CREATE ACCOUNT</span>
             </div>
-            <div class="custom-btn" onclick="showLogin()">
+            <div class="custom-btn" onclick="triggerAction('login-view')">
                 <img src="assets/btn-green.png">
                 <span>LOG IN</span>
             </div>
@@ -25,94 +30,102 @@
 
         <div id="setup-screen" class="hidden">
             <div class="data-box">
-                <p>ID: <span id="display-id" onclick="copyTxt('display-id')"></span></p>
-                <p>KEY: <span id="display-key" onclick="copyTxt('display-key')"></span></p>
+                <p>ID: <span id="display-id" onclick="copyValue('display-id')"></span></p>
+                <p>KEY: <span id="display-key" onclick="copyValue('display-key')"></span></p>
             </div>
-            <p class="click-hint">Click to copy</p>
-            <div class="custom-btn" onclick="confirmData()">
+            <p class="click-hint">Tap values to copy</p>
+            <div class="custom-btn" onclick="triggerAction('confirm')">
                 <img src="assets/btn-green.png">
-                <span>CONFIRM</span>
+                <span>CONFIRM & SAVE</span>
             </div>
         </div>
 
         <div id="login-screen" class="hidden">
             <input type="text" id="input-id" placeholder="Enter ID">
             <input type="password" id="input-key" placeholder="Enter Private Key">
-            <p id="error-msg"></p>
-            <div class="custom-btn" id="login-trigger" onclick="validateLogin()">
+            <div class="custom-btn" id="login-trigger" onclick="triggerAction('validate')">
                 <img src="assets/btn-green.png">
                 <span>ENTER PITCH</span>
             </div>
         </div>
 
         <div class="danger-box">
-            WARNING: SAVE YOUR DATA. NO RECOVERY SYSTEM. FUNDS WILL BE LOST FOREVER IF YOU LOSE THE ID OR KEY.
+            WARNING: SAVE YOUR DATA. NO RECOVERY SYSTEM. FUNDS WILL BE LOST FOREVER.
         </div>
     </div>
 
     <script>
         let fails = 0;
 
-        function generateAccount() {
-            document.getElementById('auth-choice').classList.add('hidden');
-            document.getElementById('setup-screen').classList.remove('hidden');
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.background = type === 'success' ? '#00ffcc' : '#ff0000';
+            toast.style.color = type === 'success' ? '#000' : '#fff';
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        function triggerAction(action) {
+            document.getElementById('loading-overlay').classList.remove('hidden');
             
-            // 15 DIGITS ID
-            const newId = Math.floor(Math.random() * 900000000000000) + 100000000000000;
-            // COMPLEX HEX KEY
-            const newKey = Array.from({length: 32}, () => Math.floor(Math.random() * 16).toString(16)).join('');
-            
-            document.getElementById('display-id').innerText = newId;
-            document.getElementById('display-key').innerText = newKey;
+            setTimeout(() => {
+                document.getElementById('loading-overlay').classList.add('hidden');
+                
+                if (action === 'generate') {
+                    document.getElementById('auth-choice').classList.add('hidden');
+                    document.getElementById('setup-screen').classList.remove('hidden');
+                    const newId = Math.floor(Math.random() * 900000000000000) + 100000000000000;
+                    const newKey = Array.from({length: 32}, () => Math.floor(Math.random() * 16).toString(16)).join('');
+                    document.getElementById('display-id').innerText = newId;
+                    document.getElementById('display-key').innerText = newKey;
+                } 
+                else if (action === 'login-view') {
+                    document.getElementById('auth-choice').classList.add('hidden');
+                    document.getElementById('login-screen').classList.remove('hidden');
+                    if(localStorage.getItem('saved_id')) {
+                        document.getElementById('input-id').value = localStorage.getItem('saved_id');
+                        document.getElementById('input-key').value = localStorage.getItem('saved_key');
+                    }
+                }
+                else if (action === 'confirm') {
+                    localStorage.setItem('saved_id', document.getElementById('display-id').innerText);
+                    localStorage.setItem('saved_key', document.getElementById('display-key').innerText);
+                    showToast("Account Saved Locally!");
+                    setTimeout(() => location.reload(), 1500);
+                }
+                else if (action === 'validate') {
+                    handleLogin();
+                }
+            }, 800);
         }
 
-        function copyTxt(id) {
-            const txt = document.getElementById(id).innerText;
-            navigator.clipboard.writeText(txt);
-            alert("Copied!");
+        function copyValue(id) {
+            navigator.clipboard.writeText(document.getElementById(id).innerText);
+            showToast("Copied to clipboard!");
         }
 
-        function confirmData() {
-            const id = document.getElementById('display-id').innerText;
-            const key = document.getElementById('display-key').innerText;
-            localStorage.setItem('saved_id', id);
-            localStorage.setItem('saved_key', key);
-            location.reload();
-        }
-
-        function showLogin() {
-            document.getElementById('auth-choice').classList.add('hidden');
-            document.getElementById('login-screen').classList.remove('hidden');
-            if(localStorage.getItem('saved_id')) {
-                document.getElementById('input-id').value = localStorage.getItem('saved_id');
-                document.getElementById('input-key').value = localStorage.getItem('saved_key');
-            }
-        }
-
-        function validateLogin() {
+        function handleLogin() {
             const idVal = document.getElementById('input-id').value;
             const keyVal = document.getElementById('input-key').value;
             const correctId = localStorage.getItem('saved_id');
             const correctKey = localStorage.getItem('saved_key');
 
             if (idVal === correctId && keyVal === correctKey) {
-                alert("Welcome back!");
-                // Redirect to game here
+                showToast("Access Granted!");
             } else {
                 fails++;
-                const err = document.getElementById('error-msg');
-                if (fails === 1) err.innerText = "Error. 1 min lock.";
-                if (fails === 2) err.innerText = "Error. 10 min lock.";
+                if (fails === 1) showToast("Error. Locked 1 min.", "error");
+                if (fails === 2) showToast("Error. Locked 10 min.", "error");
                 if (fails >= 3) {
-                    err.innerText = "IP BANNED.";
                     localStorage.setItem('status', 'banned');
-                    document.body.innerHTML = "<h1 style='color:red;text-align:center;'>BANNED</h1>";
+                    location.reload();
                 }
             }
         }
 
         if(localStorage.getItem('status') === 'banned') {
-            document.body.innerHTML = "<h1 style='color:red;text-align:center;'>BANNED</h1>";
+            document.body.innerHTML = "<div style='color:red; text-align:center; padding-top:100px; font-family:Arial;'><h1>IP BANNED</h1><p>Suspicious activity detected.</p></div>";
         }
     </script>
 </body>
